@@ -1,8 +1,9 @@
-import { Box, Container, Text, VStack } from "@chakra-ui/react"
+import { Box, Container, Text, VStack, Button } from "@chakra-ui/react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import useAuth from "../../hooks/useAuth"
 import ModelSelector from "../../components/training/ModelSelector"
+import TrainingParams, { TrainingConfig } from "../../components/training/TrainingParams"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -18,10 +19,10 @@ interface SelectedModel {
 function Dashboard() {
   const { user: currentUser } = useAuth()
   const [selectedModel, setSelectedModel] = useState<SelectedModel | null>(null)
+  const [trainingConfig, setTrainingConfig] = useState<TrainingConfig | null>(null)
 
   const handleModelSelect = (modelInfo: SelectedModel) => {
     setSelectedModel(modelInfo)
-    // 可以在这里添加其他处理逻辑，比如：
     switch (modelInfo.type) {
       case "online":
         console.log(`选择了在线模型: ${modelInfo.modelId}`)
@@ -35,15 +36,31 @@ function Dashboard() {
     }
   }
 
+  const handleTrainingConfigChange = (config: TrainingConfig) => {
+    setTrainingConfig(config)
+    console.log("训练配置已更新:", config)
+  }
+
+  const handleStartTraining = () => {
+    if (!selectedModel || !trainingConfig) {
+      return
+    }
+
+    console.log("开始训练:", {
+      model: selectedModel,
+      config: trainingConfig
+    })
+  }
+
   return (
     <Container maxW="full">
       <Box pt={12} m={4}>
-        <VStack spacing={6} align="stretch">
+        <VStack spacing={8} align="stretch">
           <Text fontSize="2xl">
             Hi, {currentUser?.full_name || currentUser?.email} 👋🏼
           </Text>
           <Text mb={6}>欢迎使用模型微调平台</Text>
-
+          
           {/* 模型选择区域 */}
           <Box>
             <Text fontSize="xl" fontWeight="bold" mb={4}>
@@ -52,7 +69,7 @@ function Dashboard() {
             <ModelSelector onModelSelect={handleModelSelect} />
           </Box>
 
-          {/* 这里可以根据selectedModel的状态显示下一步操作 */}
+          {/* 显示已选择的模型信息 */}
           {selectedModel && (
             <Box mt={4} p={4} borderWidth={1} borderRadius="lg" bg="gray.50">
               <Text fontWeight="bold">已选择的模型：</Text>
@@ -68,6 +85,30 @@ function Dashboard() {
                   }
                 })()}
               </Text>
+            </Box>
+          )}
+
+          {/* 训练参数配置区域 */}
+          {selectedModel && (
+            <Box>
+              <Text fontSize="xl" fontWeight="bold" mb={4}>
+                第二步：配置训练参数
+              </Text>
+              <TrainingParams onChange={handleTrainingConfigChange} />
+            </Box>
+          )}
+
+          {/* 开始训练按钮 */}
+          {selectedModel && trainingConfig && (
+            <Box>
+              <Button
+                colorScheme="blue"
+                size="lg"
+                width="full"
+                onClick={handleStartTraining}
+              >
+                开始训练
+              </Button>
             </Box>
           )}
         </VStack>

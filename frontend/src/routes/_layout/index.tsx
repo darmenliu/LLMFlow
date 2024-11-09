@@ -4,6 +4,7 @@ import { useState } from "react"
 import useAuth from "../../hooks/useAuth"
 import ModelSelector from "../../components/training/ModelSelector"
 import TrainingParams, { TrainingConfig } from "../../components/training/TrainingParams"
+import DatasetSelector from "../../components/training/DatasetSelector"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -16,10 +17,18 @@ interface SelectedModel {
   localPath?: string
 }
 
+interface SelectedDataset {
+  type: "online" | "local" | "upload"
+  datasetId?: string
+  file?: File
+  localPath?: string
+}
+
 function Dashboard() {
   const { user: currentUser } = useAuth()
   const [selectedModel, setSelectedModel] = useState<SelectedModel | null>(null)
   const [trainingConfig, setTrainingConfig] = useState<TrainingConfig | null>(null)
+  const [selectedDataset, setSelectedDataset] = useState<SelectedDataset | null>(null)
 
   const handleModelSelect = (modelInfo: SelectedModel) => {
     setSelectedModel(modelInfo)
@@ -41,14 +50,30 @@ function Dashboard() {
     console.log("训练配置已更新:", config)
   }
 
+  const handleDatasetSelect = (datasetInfo: SelectedDataset) => {
+    setSelectedDataset(datasetInfo)
+    switch (datasetInfo.type) {
+      case "online":
+        console.log(`选择了在线数据集: ${datasetInfo.datasetId}`)
+        break
+      case "local":
+        console.log(`选择了本地数据集: ${datasetInfo.datasetId}，路径: ${datasetInfo.localPath}`)
+        break
+      case "upload":
+        console.log(`上传了新数据集: ${datasetInfo.file?.name}`)
+        break
+    }
+  }
+
   const handleStartTraining = () => {
-    if (!selectedModel || !trainingConfig) {
+    if (!selectedModel || !trainingConfig || !selectedDataset) {
       return
     }
 
     console.log("开始训练:", {
       model: selectedModel,
-      config: trainingConfig
+      config: trainingConfig,
+      dataset: selectedDataset
     })
   }
 
@@ -61,7 +86,7 @@ function Dashboard() {
           </Text>
           <Text mb={6}>欢迎使用模型微调平台</Text>
           
-          {/* 模型选择区域 */}
+          {/* 第一步：模型选择区域 */}
           <Box>
             <Text fontSize="xl" fontWeight="bold" mb={4}>
               第一步：选择或上传模型
@@ -88,18 +113,43 @@ function Dashboard() {
             </Box>
           )}
 
-          {/* 训练参数配置区域 */}
-          {selectedModel && (
-            <Box>
-              <Text fontSize="xl" fontWeight="bold" mb={4}>
-                第二步：配置训练参数
+          {/* 第二步：训练参数配置区域 */}
+          <Box>
+            <Text fontSize="xl" fontWeight="bold" mb={4}>
+              第二步：配置训练参数
+            </Text>
+            <TrainingParams onChange={handleTrainingConfigChange} />
+          </Box>
+
+          {/* 第三步：数据集选择区域 - 始终显示 */}
+          <Box>
+            <Text fontSize="xl" fontWeight="bold" mb={4}>
+              第三步：选择训练数据集
+            </Text>
+            <DatasetSelector onDatasetSelect={handleDatasetSelect} />
+          </Box>
+
+          {/* 显示已选择的数据集信息 */}
+          {selectedDataset && (
+            <Box mt={4} p={4} borderWidth={1} borderRadius="lg" bg="gray.50">
+              <Text fontWeight="bold">已选择的数据集：</Text>
+              <Text>
+                {(() => {
+                  switch (selectedDataset.type) {
+                    case "online":
+                      return `在线数据集 - ${selectedDataset.datasetId}`
+                    case "local":
+                      return `本地数据集 - ${selectedDataset.datasetId}`
+                    case "upload":
+                      return `上传的数据集 - ${selectedDataset.file?.name}`
+                  }
+                })()}
               </Text>
-              <TrainingParams onChange={handleTrainingConfigChange} />
             </Box>
           )}
 
-          {/* 开始训练按钮 */}
-          {selectedModel && trainingConfig && (
+          {/* 开始训练按钮 - 仍然需要所有条件满足才显示 */}
+          {selectedModel && trainingConfig && selectedDataset && (
             <Box>
               <Button
                 colorScheme="blue"

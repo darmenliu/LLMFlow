@@ -152,7 +152,7 @@ export default function ModelSelector({ onModelSelect }: ModelSelectorProps) {
     <Box p={6} borderWidth={1} borderRadius="lg" bg="white" shadow="sm">
       <VStack spacing={6} align="stretch">
         <FormControl>
-          <FormLabel fontWeight="bold">模型来源</FormLabel>
+          <FormLabel fontWeight="bold" color="green.500">模型来源</FormLabel>
           <RadioGroup value={sourceType} onChange={(value: "online" | "local") => {
             setSourceType(value)
             setSelectedModel("")
@@ -169,7 +169,7 @@ export default function ModelSelector({ onModelSelect }: ModelSelectorProps) {
 
         {sourceType === "online" ? (
           <FormControl>
-            <FormLabel fontWeight="bold">选择预训练模型</FormLabel>
+            <FormLabel fontWeight="bold" color="green.500">选择预训练模型</FormLabel>
             <Select
               placeholder="请选择一个模型"
               value={selectedModel}
@@ -191,13 +191,13 @@ export default function ModelSelector({ onModelSelect }: ModelSelectorProps) {
           <Box>
             <Tabs variant="enclosed" onChange={(index) => setLocalModelTab(index)}>
               <TabList>
-                <Tab>选择已有模型</Tab>
-                <Tab>上传新模型</Tab>
+                <Tab color="green.500">选择已有模型</Tab>
+                <Tab color="green.500">上传新模型</Tab>
               </TabList>
               <TabPanels>
                 <TabPanel>
                   <FormControl>
-                    <FormLabel fontWeight="bold">选择本地模型</FormLabel>
+                    <FormLabel fontWeight="bold" color="green.500">选择本地模型</FormLabel>
                     <Select
                       placeholder="请选择已有的模型"
                       value={selectedLocalModel}
@@ -229,7 +229,7 @@ export default function ModelSelector({ onModelSelect }: ModelSelectorProps) {
                 <TabPanel>
                   <VStack spacing={4} align="stretch">
                     <FormControl>
-                      <FormLabel fontWeight="bold">上传模型文件</FormLabel>
+                      <FormLabel fontWeight="bold" color="green.500">上传模型文件</FormLabel>
                       <Input
                         type="file"
                         accept=".bin,.ckpt,.pt,.pth,.safetensors"

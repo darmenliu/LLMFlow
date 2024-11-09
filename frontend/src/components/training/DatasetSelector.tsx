@@ -157,7 +157,7 @@ export default function DatasetSelector({ onDatasetSelect }: DatasetSelectorProp
   const handlePreview = () => {
     toast({
       title: "数据预览功能开发中",
-      description: "该功能将在后续版本中提供",
+      description: "该功能将��后续版本中提供",
       status: "info",
       duration: 3000,
     })
@@ -167,7 +167,7 @@ export default function DatasetSelector({ onDatasetSelect }: DatasetSelectorProp
     <Box p={6} borderWidth={1} borderRadius="lg" bg="white" shadow="sm">
       <VStack spacing={6} align="stretch">
         <FormControl>
-          <FormLabel fontWeight="bold">数据来源</FormLabel>
+          <FormLabel fontWeight="bold" color="green.500">数据来源</FormLabel>
           <RadioGroup
             value={sourceType}
             onChange={(value: "online" | "local" | "upload") => {
@@ -188,7 +188,7 @@ export default function DatasetSelector({ onDatasetSelect }: DatasetSelectorProp
         {sourceType === "upload" ? (
           <VStack spacing={4} align="stretch">
             <FormControl>
-              <FormLabel fontWeight="bold">上传数据文件</FormLabel>
+              <FormLabel fontWeight="bold" color="green.500">上传数据文件</FormLabel>
               <Input
                 type="file"
                 accept=".json,.jsonl,.csv,.txt"
@@ -220,7 +220,7 @@ export default function DatasetSelector({ onDatasetSelect }: DatasetSelectorProp
         ) : (
           <FormControl>
             <HStack justify="space-between" align="center" mb={2}>
-              <FormLabel fontWeight="bold" mb={0}>
+              <FormLabel fontWeight="bold" mb={0} color="green.500">
                 {sourceType === "online" ? "选择在线数据集" : "选择本地数据集"}
               </FormLabel>
               <Button

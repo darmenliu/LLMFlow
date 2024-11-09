@@ -81,14 +81,14 @@ function Dashboard() {
     <Container maxW="full">
       <Box pt={12} m={4}>
         <VStack spacing={8} align="stretch">
-          <Text fontSize="2xl">
+          <Text fontSize="2xl" color="green.500">
             Hi, {currentUser?.full_name || currentUser?.email} 👋🏼
           </Text>
-          <Text mb={6}>欢迎使用模型微调平台</Text>
+          <Text mb={6} color="green.500">欢迎使用模型微调平台</Text>
           
           {/* 第一步：模型选择区域 */}
           <Box>
-            <Text fontSize="xl" fontWeight="bold" mb={4}>
+            <Text fontSize="xl" fontWeight="bold" mb={4} color="green.500">
               第一步：选择或上传模型
             </Text>
             <ModelSelector onModelSelect={handleModelSelect} />
@@ -97,8 +97,8 @@ function Dashboard() {
           {/* 显示已选择的模型信息 */}
           {selectedModel && (
             <Box mt={4} p={4} borderWidth={1} borderRadius="lg" bg="gray.50">
-              <Text fontWeight="bold">已选择的模型：</Text>
-              <Text>
+              <Text fontWeight="bold" color="green.500">已选择的模型：</Text>
+              <Text color="green.500">
                 {(() => {
                   switch (selectedModel.type) {
                     case "online":
@@ -115,15 +115,15 @@ function Dashboard() {
 
           {/* 第二步：训练参数配置区域 */}
           <Box>
-            <Text fontSize="xl" fontWeight="bold" mb={4}>
+            <Text fontSize="xl" fontWeight="bold" mb={4} color="green.500">
               第二步：配置训练参数
             </Text>
             <TrainingParams onChange={handleTrainingConfigChange} />
           </Box>
 
-          {/* 第三步：数据集选择区域 - 始终显示 */}
+          {/* 第三步：数据集选择区域 */}
           <Box>
-            <Text fontSize="xl" fontWeight="bold" mb={4}>
+            <Text fontSize="xl" fontWeight="bold" mb={4} color="green.500">
               第三步：选择训练数据集
             </Text>
             <DatasetSelector onDatasetSelect={handleDatasetSelect} />
@@ -132,8 +132,8 @@ function Dashboard() {
           {/* 显示已选择的数据集信息 */}
           {selectedDataset && (
             <Box mt={4} p={4} borderWidth={1} borderRadius="lg" bg="gray.50">
-              <Text fontWeight="bold">已选择的数据集：</Text>
-              <Text>
+              <Text fontWeight="bold" color="green.500">已选择的数据集：</Text>
+              <Text color="green.500">
                 {(() => {
                   switch (selectedDataset.type) {
                     case "online":
@@ -148,11 +148,11 @@ function Dashboard() {
             </Box>
           )}
 
-          {/* 开始训练按钮 - 仍然需要所有条件满足才显示 */}
+          {/* 开始训练按钮 */}
           {selectedModel && trainingConfig && selectedDataset && (
             <Box>
               <Button
-                colorScheme="blue"
+                colorScheme="green"
                 size="lg"
                 width="full"
                 onClick={handleStartTraining}

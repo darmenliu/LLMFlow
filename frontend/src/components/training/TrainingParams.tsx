@@ -183,7 +183,7 @@ export default function TrainingParams({ onChange }: TrainingParamsProps) {
       <VStack spacing={6} align="stretch">
         {/* 微调配置 */}
         <Box>
-          <Text fontSize="md" fontWeight="bold" mb={4}>微调配置</Text>
+          <Text fontSize="md" fontWeight="bold" mb={4} color="green.500">微调配置</Text>
           <SimpleGrid columns={3} spacing={4}>
             <FormControl>
               <ParamLabel 
@@ -234,7 +234,7 @@ export default function TrainingParams({ onChange }: TrainingParamsProps) {
 
         {/* 原有的量化配置 */}
         <Box>
-          <Text fontSize="md" fontWeight="bold" mb={4}>量化配置</Text>
+          <Text fontSize="md" fontWeight="bold" mb={4} color="green.500">量化配置</Text>
           <SimpleGrid columns={3} spacing={4}>
             <FormControl>
               <ParamLabel 
@@ -289,7 +289,7 @@ export default function TrainingParams({ onChange }: TrainingParamsProps) {
 
         {/* 原有的加速配置 */}
         <Box>
-          <Text fontSize="md" fontWeight="bold" mb={4}>加速配置</Text>
+          <Text fontSize="md" fontWeight="bold" mb={4} color="green.500">加速配置</Text>
           <SimpleGrid columns={2} spacing={4}>
             <FormControl>
               <ParamLabel 
@@ -331,7 +331,7 @@ export default function TrainingParams({ onChange }: TrainingParamsProps) {
 
         {/* 新增的优化器配置 */}
         <Box>
-          <Text fontSize="md" fontWeight="bold" mb={4}>优化器配置</Text>
+          <Text fontSize="md" fontWeight="bold" mb={4} color="green.500">优化器配置</Text>
           <SimpleGrid columns={2} spacing={4}>
             <FormControl>
               <ParamLabel 
@@ -420,7 +420,7 @@ export default function TrainingParams({ onChange }: TrainingParamsProps) {
 
         {/* 新增的高级配置 */}
         <Box>
-          <Text fontSize="md" fontWeight="bold" mb={4}>高级配置</Text>
+          <Text fontSize="md" fontWeight="bold" mb={4} color="green.500">高级配置</Text>
           <SimpleGrid columns={2} spacing={4}>
             <FormControl>
               <ParamLabel 

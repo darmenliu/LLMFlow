@@ -1,4 +1,4 @@
-import { Box, Container, Text, VStack, Button } from "@chakra-ui/react"
+import { Box, Container, Text, VStack, Button, SimpleGrid, FormControl, FormLabel, Input } from "@chakra-ui/react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import useAuth from "../../hooks/useAuth"
@@ -6,6 +6,7 @@ import ModelSelector from "../../components/training/ModelSelector"
 import TrainingParams, { TrainingConfig } from "../../components/training/TrainingParams"
 import DatasetSelector from "../../components/training/DatasetSelector"
 import LoraParams, { LoraConfig } from "../../components/training/LoraParams"
+import { DownloadIcon, ArrowUpIcon } from "@chakra-ui/icons"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -31,6 +32,7 @@ function Dashboard() {
   const [trainingConfig, setTrainingConfig] = useState<TrainingConfig | null>(null)
   const [selectedDataset, setSelectedDataset] = useState<SelectedDataset | null>(null)
   const [loraConfig, setLoraConfig] = useState<LoraConfig | null>(null)
+  const [isTraining, setIsTraining] = useState(false)
 
   const handleModelSelect = (modelInfo: SelectedModel) => {
     setSelectedModel(modelInfo)
@@ -77,12 +79,71 @@ function Dashboard() {
       return
     }
 
+    setIsTraining(true)
     console.log("开始训练:", {
       model: selectedModel,
       config: trainingConfig,
       dataset: selectedDataset,
       lora: loraConfig
     })
+  }
+
+  const handleStopTraining = () => {
+    setIsTraining(false)
+    console.log("中断训练")
+  }
+
+  const handleSaveConfig = () => {
+    if (!selectedModel || !trainingConfig || !selectedDataset || !loraConfig) {
+      return
+    }
+
+    const config = {
+      model: selectedModel,
+      training: trainingConfig,
+      dataset: selectedDataset,
+      lora: loraConfig,
+      timestamp: new Date().toISOString(),
+    }
+
+    // 将配置转换为字符串
+    const configString = JSON.stringify(config, null, 2)
+    
+    // 创建 Blob
+    const blob = new Blob([configString], { type: 'application/json' })
+    
+    // 创建下载链接
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `training-config-${new Date().toISOString().slice(0,10)}.json`
+    
+    // 触发下载
+    document.body.appendChild(link)
+    link.click()
+    
+    // 清理
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleLoadConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const config = JSON.parse(e.target?.result as string)
+        setSelectedModel(config.model)
+        setTrainingConfig(config.training)
+        setSelectedDataset(config.dataset)
+        setLoraConfig(config.lora)
+      } catch (error) {
+        console.error('配置文件解析失败:', error)
+      }
+    }
+    reader.readAsText(file)
   }
 
   return (
@@ -164,19 +225,66 @@ function Dashboard() {
             <LoraParams onChange={handleLoraConfigChange} />
           </Box>
 
-          {/* 开始训练按钮 */}
-          {selectedModel && trainingConfig && selectedDataset && loraConfig && (
-            <Box>
-              <Button
-                colorScheme="green"
-                size="lg"
-                width="full"
-                onClick={handleStartTraining}
-              >
-                开始训练
-              </Button>
-            </Box>
-          )}
+          {/* 训练控制按钮 */}
+          <SimpleGrid columns={2} spacing={4}>
+            <Button
+              colorScheme="green"
+              size="lg"
+              width="full"
+              onClick={handleStartTraining}
+              isDisabled={!selectedModel || !trainingConfig || !selectedDataset || !loraConfig || isTraining}
+              isLoading={isTraining}
+              loadingText="训练中..."
+            >
+              开始训练
+            </Button>
+            <Button
+              colorScheme="red"
+              size="lg"
+              width="full"
+              onClick={handleStopTraining}
+              isDisabled={!isTraining}
+              variant="outline"
+            >
+              中断训练
+            </Button>
+          </SimpleGrid>
+
+          {/* 配置保存和载入按钮 */}
+          <SimpleGrid columns={2} spacing={4}>
+            <Button
+              colorScheme="blue"
+              size="md"
+              width="full"
+              onClick={handleSaveConfig}
+              isDisabled={!selectedModel || !trainingConfig || !selectedDataset || !loraConfig}
+              leftIcon={<DownloadIcon />}
+              variant="outline"
+            >
+              保存训练参数
+            </Button>
+            <FormControl>
+              <FormLabel htmlFor="config-file" margin={0}>
+                <Button
+                  as="span"
+                  colorScheme="blue"
+                  size="md"
+                  width="full"
+                  leftIcon={<ArrowUpIcon />}
+                  variant="outline"
+                >
+                  载入训练参数
+                </Button>
+              </FormLabel>
+              <Input
+                id="config-file"
+                type="file"
+                accept=".json"
+                onChange={handleLoadConfig}
+                display="none"
+              />
+            </FormControl>
+          </SimpleGrid>
         </VStack>
       </Box>
     </Container>

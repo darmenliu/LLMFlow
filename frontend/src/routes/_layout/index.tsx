@@ -5,6 +5,7 @@ import useAuth from "../../hooks/useAuth"
 import ModelSelector from "../../components/training/ModelSelector"
 import TrainingParams, { TrainingConfig } from "../../components/training/TrainingParams"
 import DatasetSelector from "../../components/training/DatasetSelector"
+import LoraParams, { LoraConfig } from "../../components/training/LoraParams"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -29,6 +30,7 @@ function Dashboard() {
   const [selectedModel, setSelectedModel] = useState<SelectedModel | null>(null)
   const [trainingConfig, setTrainingConfig] = useState<TrainingConfig | null>(null)
   const [selectedDataset, setSelectedDataset] = useState<SelectedDataset | null>(null)
+  const [loraConfig, setLoraConfig] = useState<LoraConfig | null>(null)
 
   const handleModelSelect = (modelInfo: SelectedModel) => {
     setSelectedModel(modelInfo)
@@ -65,15 +67,21 @@ function Dashboard() {
     }
   }
 
+  const handleLoraConfigChange = (config: LoraConfig) => {
+    setLoraConfig(config)
+    console.log("LoRA配置已更新:", config)
+  }
+
   const handleStartTraining = () => {
-    if (!selectedModel || !trainingConfig || !selectedDataset) {
+    if (!selectedModel || !trainingConfig || !selectedDataset || !loraConfig) {
       return
     }
 
     console.log("开始训练:", {
       model: selectedModel,
       config: trainingConfig,
-      dataset: selectedDataset
+      dataset: selectedDataset,
+      lora: loraConfig
     })
   }
 
@@ -148,8 +156,16 @@ function Dashboard() {
             </Box>
           )}
 
+          {/* 第四步：LoRA参数设置 */}
+          <Box>
+            <Text fontSize="xl" fontWeight="bold" mb={4} color="green.500">
+              第四步：配置 LoRA 参数
+            </Text>
+            <LoraParams onChange={handleLoraConfigChange} />
+          </Box>
+
           {/* 开始训练按钮 */}
-          {selectedModel && trainingConfig && selectedDataset && (
+          {selectedModel && trainingConfig && selectedDataset && loraConfig && (
             <Box>
               <Button
                 colorScheme="green"

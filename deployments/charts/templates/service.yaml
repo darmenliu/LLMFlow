@@ -1,0 +1,54 @@
+{{- define "common.service" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+spec:
+  type: {{ .service.type }}
+  ports:
+    {{- if kindIs "slice" .service.ports }}
+    {{- range .service.ports }}
+    - port: {{ .port }}
+      targetPort: {{ .port }}
+      protocol: TCP
+      name: {{ .name }}
+    {{- end }}
+    {{- else }}
+    - port: {{ .service.port }}
+      targetPort: {{ .service.port }}
+      protocol: TCP
+      name: http
+    {{- end }}
+  selector:
+    {{- include "common.selectorLabels" . | nindent 4 }}
+{{- end -}}
+
+---
+# Backend Service
+{{- with .Values.backend -}}
+{{- include "common.service" . }}
+---
+{{- end }}
+
+# Frontend Service
+{{- with .Values.frontend -}}
+{{- include "common.service" . }}
+---
+{{- end }}
+
+# Adminer Service
+{{- if .Values.adminer.enabled -}}
+{{- with .Values.adminer -}}
+{{- include "common.service" . }}
+---
+{{- end }}
+{{- end }}
+
+# Mailcatcher Service  
+{{- if .Values.mailcatcher.enabled -}}
+{{- with .Values.mailcatcher -}}
+{{- include "common.service" . }}
+{{- end }}
+{{- end }} 

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: fastapi-project
+description: A Helm chart for FastAPI Project
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: postgresql
+    version: 12.x.x
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: traefik
+    version: 3.x.x 
+    repository: https://helm.traefik.io/traefik
+    condition: traefik.enabled 

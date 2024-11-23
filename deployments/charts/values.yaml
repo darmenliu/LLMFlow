@@ -1,0 +1,106 @@
+# 全局配置
+global:
+  environment: development
+  domain: localhost.tiangolo.com
+
+# PostgreSQL配置
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: changethis
+    database: app
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# Traefik配置  
+traefik:
+  enabled: true
+  ports:
+    web:
+      port: 80
+    websecure:
+      port: 443
+    metrics:
+      port: 8080
+  additionalArguments:
+    - "--log.level=DEBUG"
+    - "--api.insecure=true"
+    - "--providers.kubernetesingress.ingressclass=traefik"
+    - "--accesslog=true"
+
+# 后端服务配置
+backend:
+  name: backend
+  image:
+    repository: backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    SMTP_HOST: mailcatcher
+    SMTP_PORT: "1025"
+    SMTP_TLS: "false"
+    EMAILS_FROM_EMAIL: "noreply@example.com"
+  service:
+    type: ClusterIP
+    port: 8000
+
+# 前端服务配置    
+frontend:
+  name: frontend
+  image:
+    repository: frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    VITE_API_URL: http://backend:8000
+    NODE_ENV: development
+  service:
+    type: ClusterIP
+    port: 80
+
+# Adminer配置
+adminer:
+  enabled: true
+  image:
+    repository: adminer
+    tag: latest
+    pullPolicy: IfNotPresent
+  env:
+    ADMINER_DESIGN: pepa-linha-dark
+  service:
+    type: ClusterIP
+    port: 8080
+
+# Mailcatcher配置
+mailcatcher:
+  enabled: true
+  image:
+    repository: schickling/mailcatcher
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    ports:
+      - name: web
+        port: 1080
+      - name: smtp
+        port: 1025 

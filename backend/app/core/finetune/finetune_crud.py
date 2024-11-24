@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from sqlmodel import Session, select
 
-from app.models.finetune import FinetuneParametersDB
+from app.finetunedb.finetune import FinetuneParametersDB
 from app.core.finetune.finetune_parameters import (
     FinetuneParameters,
     QuantizationParameters,

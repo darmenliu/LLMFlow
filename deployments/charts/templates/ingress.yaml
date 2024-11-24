@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: "{{ .Release.Namespace }}-redirect-https@kubernetescrd"
+spec:
+  rules:
+    # Backend Ingress Rule
+    - host: "api.{{ .Values.global.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.backend.name }}
+                port:
+                  number: {{ .Values.backend.service.port }}
+    
+    # Frontend Ingress Rule        
+    - host: "dashboard.{{ .Values.global.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.frontend.name }}
+                port:
+                  number: {{ .Values.frontend.service.port }}
+
+    # Adminer Ingress Rule
+    {{- if .Values.adminer.enabled }}
+    - host: "adminer.{{ .Values.global.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.adminer.name }}
+                port:
+                  number: {{ .Values.adminer.service.port }}
+    {{- end }} 

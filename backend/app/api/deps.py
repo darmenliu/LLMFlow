@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from typing import Annotated
+from functools import lru_cache
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -12,6 +13,10 @@ from app.core import security
 from app.core.config import settings
 from app.core.db import engine
 from app.models import TokenPayload, User
+from app.core.taskmanager.finetune_task_manager import FinetuneTaskManager
+from app.core.finetune.finetune_impl_k8s_job import K8sFinetuneService
+from app.core.kubeclient.finetune_jobs import FinetuneJobClient
+from app.db.session import get_session
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -55,3 +60,30 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
             status_code=403, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+
+@lru_cache()
+def get_task_manager(
+    session = Depends(get_session)
+) -> FinetuneTaskManager:
+    """获取任务管理器单例"""
+    # 创建K8s任务客户端
+    job_client = FinetuneJobClient(
+        config_file=None,  # 使用默认配置
+        finetune_image="your-finetune-image:latest",
+        default_namespace="finetune"
+    )
+    
+    # 创建微调服务
+    finetune_service = K8sFinetuneService(
+        finetune_job_client=job_client,
+        db_session=session,
+        namespace="finetune"
+    )
+    
+    # 创建任务管理器
+    return FinetuneTaskManager(
+        finetune_service=finetune_service,
+        max_concurrent_tasks=5,
+        max_tasks_per_user=3
+    )

@@ -1,6 +1,6 @@
 import secrets
 import warnings
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Optional
 
 from pydantic import (
     AnyUrl,
@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     FINETUNE_NAMESPACE: str = "finetune"
     MAX_CONCURRENT_TASKS: int = 5
     MAX_TASKS_PER_USER: int = 3
+    KUBECONFIG_PATH: Optional[str] = None  # 默认使用 ~/.kube/config
 
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)

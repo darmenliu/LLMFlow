@@ -43,7 +43,8 @@ async def startup_event():
         finetune_image=settings.FINETUNE_IMAGE,
         namespace=settings.FINETUNE_NAMESPACE,
         max_concurrent_tasks=settings.MAX_CONCURRENT_TASKS,
-        max_tasks_per_user=settings.MAX_TASKS_PER_USER
+        max_tasks_per_user=settings.MAX_TASKS_PER_USER,
+        kubeconfig_path=settings.KUBECONFIG_PATH
     )
 
 def init_app():

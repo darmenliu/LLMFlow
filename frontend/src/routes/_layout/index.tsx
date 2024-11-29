@@ -75,16 +75,61 @@ function Dashboard() {
   }
 
   const handleStartTraining = () => {
-    if (!selectedModel || !trainingConfig || !selectedDataset || !loraConfig) {
+    if (!selectedModel || !selectedDataset) {
       return
     }
 
     setIsTraining(true)
+    
+    // 使用默认的训练配置
+    const defaultTrainingConfig = {
+      quantization: {
+        method: "int4",
+        bits: 4
+      },
+      prompt: {
+        template: "default"
+      },
+      accelerator: {
+        type: "cuda",
+        processes: 1
+      },
+      rope: {
+        type: "linear"
+      },
+      optimizer: {
+        learningRate: 3e-4,
+        weightDecay: 0.01,
+        betas: [0.9, 0.999]
+      },
+      compute: {
+        dtype: "float16"
+      },
+      training: {
+        epochs: 3,
+        batchSize: 4
+      }
+    }
+
+    // 使用默认的 LoRA 配置
+    const defaultLoraConfig = {
+      lora_alpha: 16,
+      lora_r: 8,
+      scaling_factor: 1.0,
+      learing_rate_ratio: 1.0,
+      lora_dropout: 0.05,
+      is_create_new_adapter: true,
+      is_rls_lora: false,
+      is_do_lora: true,
+      is_pissa: false,
+      lora_target_modules: ["q_proj", "v_proj"]
+    }
+
     console.log("开始训练:", {
       model: selectedModel,
-      config: trainingConfig,
+      config: defaultTrainingConfig,
       dataset: selectedDataset,
-      lora: loraConfig
+      lora: defaultLoraConfig
     })
   }
 
@@ -232,7 +277,7 @@ function Dashboard() {
               size="lg"
               width="full"
               onClick={handleStartTraining}
-              isDisabled={!selectedModel || !trainingConfig || !selectedDataset || !loraConfig || isTraining}
+              isDisabled={!selectedModel || !selectedDataset || isTraining}
               isLoading={isTraining}
               loadingText="训练中..."
             >

@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.db import engine
 from app.models import TokenPayload, User
 from app.core.taskmanager.task_manager_singleton import get_task_manager as get_task_manager_singleton
+from app.core.taskmanager.finetune_task_manager import FinetuneTaskManager
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"

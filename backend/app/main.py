@@ -34,15 +34,18 @@ if settings.all_cors_origins:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-def init_app():
-    # 其他初始化代码...
-    
+@app.on_event("startup")
+async def startup_event():
     # 初始化任务管理器
     db = next(get_session())
     init_task_manager(
         db_session=db,
-        finetune_image="your-finetune-image:latest",
-        namespace="finetune",
-        max_concurrent_tasks=5,
-        max_tasks_per_user=3
+        finetune_image=settings.FINETUNE_IMAGE,
+        namespace=settings.FINETUNE_NAMESPACE,
+        max_concurrent_tasks=settings.MAX_CONCURRENT_TASKS,
+        max_tasks_per_user=settings.MAX_TASKS_PER_USER
     )
+
+def init_app():
+    # 其他初始化代码...
+    pass

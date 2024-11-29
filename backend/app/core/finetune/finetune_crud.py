@@ -2,6 +2,7 @@ from typing import List, Optional
 import uuid
 import json
 from datetime import datetime
+from venv import logger
 from sqlmodel import Session, select
 
 from app.finetunedb.finetune import FinetuneParametersDB
@@ -25,6 +26,7 @@ class FinetuneParametersCRUD:
         """
         创建并存储微调参数
         """
+        logger.info(f"创建微调参数: {parameters}") 
         db_parameters = FinetuneParametersDB(
             user_id=user_id,
             name=name,
@@ -44,7 +46,6 @@ class FinetuneParametersCRUD:
             
             # 加速器参数
             accelerator_type=parameters.accelerator_parameters.accelerator_type,
-            num_processes=parameters.accelerator_parameters.num_processes,
             rope_interpolation_type=parameters.accelerator_parameters.rope_interpolation_type,
             
             # 优化器参数
@@ -67,11 +68,13 @@ class FinetuneParametersCRUD:
             is_pissa=parameters.lora_parameters.is_pissa,
             lora_target_modules=json.dumps(parameters.lora_parameters.lora_target_modules)
         )
-        
+        logger.info(f"微调参数已保存: {db_parameters.id}")
         session.add(db_parameters)
+        logger.info(f"提交微调参数: {db_parameters}")
         session.commit()
+        logger.info(f"刷新微调参数: {db_parameters}")
         session.refresh(db_parameters)
-        
+        logger.info(f"返回微调参数: {db_parameters}")
         return db_parameters
 
     @staticmethod
@@ -159,7 +162,6 @@ class FinetuneParametersCRUD:
         
         # 更新加速器参数
         db_parameters.accelerator_type = parameters.accelerator_parameters.accelerator_type
-        db_parameters.num_processes = parameters.accelerator_parameters.num_processes
         db_parameters.rope_interpolation_type = parameters.accelerator_parameters.rope_interpolation_type
         
         # 更新优化器参数
@@ -203,7 +205,6 @@ class FinetuneParametersCRUD:
         
         accelerator_parameters = AcceleratorParameters(
             accelerator_type=db_parameters.accelerator_type,
-            num_processes=db_parameters.num_processes,
             rope_interpolation_type=db_parameters.rope_interpolation_type
         )
         

@@ -540,7 +540,6 @@ export type TDataStartFinetune = {
   prompt_template: string
   // 加速器参数
   accelerator_type: string
-  num_processes: number
   rope_interpolation_type: string
   // 优化器参数
   learning_rate: number

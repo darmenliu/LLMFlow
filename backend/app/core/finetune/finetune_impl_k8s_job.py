@@ -40,35 +40,35 @@ class K8sFinetuneService(FinetuneInterface):
         parameters_id: uuid.UUID,
     ) -> Dict[str, Any]:
         """启动微调任务"""
-        try:
-            # 获取微调参数
-            parameters = FinetuneParametersCRUD.get_parameters_by_id(
-                self.db_session, 
-                parameters_id, 
-                user_id
-            )
-            if not parameters:
-                raise ValueError(f"未找到微调参数: {parameters_id}")
+        # try:
+        # 获取微调参数
+        parameters = FinetuneParametersCRUD.get_parameters_by_id(
+            self.db_session, 
+            parameters_id, 
+            user_id
+        )
+        if not parameters:
+            raise ValueError(f"未找到微调参数: {parameters_id}")
 
-            # 生成任务ID
-            job_id = str(uuid.uuid4())
+        # 生成任务ID
+        job_id = str(uuid.uuid4())
 
-            # 创建微调任务
-            job_info = self.job_client.create_finetune_job(
-                job_id=job_id,
-                parameters=parameters,
-                namespace=self.namespace
-            )
+        # 创建微调任务
+        job_info = self.job_client.create_finetune_job(
+            job_id=job_id,
+            parameters=parameters,
+            namespace=self.namespace
+        )
 
-            logger.info(f"成功启动微调任务: {job_id}")
-            return {
-                "job_id": job_id,
-                "status": job_info
-            }
+        logger.info(f"成功启动微调任务: {job_id}")
+        return {
+            "job_id": job_id,
+            "status": job_info
+        }
 
-        except Exception as e:
-            logger.error(f"启动微调任务失败: {str(e)}")
-            raise
+        # except Exception as e:
+        #     logger.error(f"启动微调任务失败: {str(e)}")
+        #     raise
 
     async def stop_finetune(
         self,

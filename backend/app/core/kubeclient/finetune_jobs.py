@@ -78,7 +78,6 @@ class FinetuneJobClient:
                 
                 # 加速器参数
                 "ACCELERATOR_TYPE": parameters.accelerator_parameters.accelerator_type,
-                "NUM_PROCESSES": str(parameters.accelerator_parameters.num_processes),
                 "ROPE_INTERPOLATION_TYPE": parameters.accelerator_parameters.rope_interpolation_type,
                 
                 # 优化器参数

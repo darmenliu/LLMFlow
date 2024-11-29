@@ -6,7 +6,7 @@ class QuantizationParameters:
         self.prompt_template = prompt_template
 
 class AcceleratorParameters:
-    def __init__(self, accelerator_type: str, num_processes: int, rope_interpolation_type: str):
+    def __init__(self, accelerator_type: str, rope_interpolation_type: str):
         self.rope_interpolation_type = rope_interpolation_type
         self.accelerator_type = accelerator_type
 

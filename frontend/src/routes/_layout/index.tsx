@@ -138,7 +138,6 @@ function Dashboard() {
         
         // 加速器参数
         accelerator_type: trainingConfig.accelerationMethod,
-        num_processes: 1,
         rope_interpolation_type: trainingConfig.ropeMethod,
         
         // 优化器参数

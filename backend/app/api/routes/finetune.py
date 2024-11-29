@@ -37,7 +37,6 @@ class StartFinetuneRequest(BaseModel):
     
     # 加速器参数
     accelerator_type: str = Field(..., description="加速器类型")
-    num_processes: int = Field(1, description="进程数量")
     rope_interpolation_type: str = Field(..., description="RoPE插值类型")
     
     # 优化器参数
@@ -109,89 +108,91 @@ async def start_finetune(
     Raises:
         HTTPException: 启动失败时抛出异常
     """
-    try:
-        # 构建调参数
-        finetune_parameters = FinetuneParameters(
-            model_name=request.model_name,
-            dataset_name=request.dataset_name,
-            finetune_method=request.finetune_method,
-            training_phase=request.training_phase,
-            checkpoint_path=request.checkpoint_path,
-            
-            quantization_parameters=QuantizationParameters(
-                quantization_method=request.quantization_method,
-                quantization_bits=request.quantization_bits,
-                prompt_template=request.prompt_template
-            ),
-            
-            accelerator_parameters=AcceleratorParameters(
-                accelerator_type=request.accelerator_type,
-                num_processes=request.num_processes,
-                rope_interpolation_type=request.rope_interpolation_type
-            ),
-            
-            optimizer_parameters=OptimizerParameters(
-                learning_rate=request.learning_rate,
-                weight_decay=request.weight_decay,
-                betas=request.betas,
-                compute_dtype=request.compute_dtype,
-                num_epochs=request.num_epochs,
-                batch_size=request.batch_size
-            ),
-            
-            lora_parameters=LoraParameters(
-                lora_alpha=request.lora_alpha,
-                lora_r=request.lora_r,
-                scaling_factor=request.scaling_factor,
-                learing_rate_ratio=request.learing_rate_ratio,
-                lora_dropout=request.lora_dropout,
-                is_create_new_adapter=request.is_create_new_adapter,
-                is_rls_lora=request.is_rls_lora,
-                is_do_lora=request.is_do_lora,
-                is_pissa=request.is_pissa,
-                lora_target_modules=request.lora_target_modules
-            )
-        )
+    # try:
+    logger.info(f"启动微调任务: {request}")
+    # 构建调参数
+    finetune_parameters = FinetuneParameters(
+        model_name=request.model_name,
+        dataset_name=request.dataset_name,
+        finetune_method=request.finetune_method,
+        training_phase=request.training_phase,
+        checkpoint_path=request.checkpoint_path,
         
-        # 保存微调参数
-        parameters_db = FinetuneParametersCRUD.create_parameters(
-            session=session,
-            user_id=current_user.id,
-            name=f"{request.model_name}-{request.finetune_method}",
-            parameters=finetune_parameters,
-            description=f"为{request.model_name}模型使用{request.finetune_method}方法进行微调"
-        )
+        quantization_parameters=QuantizationParameters(
+            quantization_method=request.quantization_method,
+            quantization_bits=request.quantization_bits,
+            prompt_template=request.prompt_template
+        ),
         
-        # 提交任务到任务管理器
-        task_id = await task_manager.submit_task(
-            user_id=current_user.id,
-            parameters_id=parameters_db.id
-        )
+        accelerator_parameters=AcceleratorParameters(
+            accelerator_type=request.accelerator_type,
+            rope_interpolation_type=request.rope_interpolation_type
+        ),
         
-        # 获取任务状态
-        status = await task_manager.get_task_status(
-            user_id=current_user.id,
-            task_id=task_id
-        )
+        optimizer_parameters=OptimizerParameters(
+            learning_rate=request.learning_rate,
+            weight_decay=request.weight_decay,
+            betas=request.betas,
+            compute_dtype=request.compute_dtype,
+            num_epochs=request.num_epochs,
+            batch_size=request.batch_size
+        ),
         
-        return StartFinetuneResponse(
-            task_id=task_id,
-            message="微调任务已成功提交",
-            status=status
+        lora_parameters=LoraParameters(
+            lora_alpha=request.lora_alpha,
+            lora_r=request.lora_r,
+            scaling_factor=request.scaling_factor,
+            learing_rate_ratio=request.learing_rate_ratio,
+            lora_dropout=request.lora_dropout,
+            is_create_new_adapter=request.is_create_new_adapter,
+            is_rls_lora=request.is_rls_lora,
+            is_do_lora=request.is_do_lora,
+            is_pissa=request.is_pissa,
+            lora_target_modules=request.lora_target_modules
         )
-        
-    except ValueError as e:
-        # 处理参数验证错误
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )
-    except Exception as e:
-        # 处理其他错误
-        raise HTTPException(
-            status_code=500,
-            detail=f"启动微调任务失败: {str(e)}"
-        )
+    )
+    logger.info(f"微调参数: {finetune_parameters}")
+    # 保存微调参数
+    parameters_db = FinetuneParametersCRUD.create_parameters(
+        session=session,
+        user_id=current_user.id,
+        name=f"{request.model_name}-{request.finetune_method}",
+        parameters=finetune_parameters,
+        description=f"为{request.model_name}模型使用{request.finetune_method}方法进行微调"
+    )
+    logger.info(f"微调参数已保存: {parameters_db.id}")
+    # 提交任务到任务管理器
+    task_id = await task_manager.submit_task(
+        user_id=current_user.id,
+        parameters_id=parameters_db.id
+    )
+    logger.info(f"微调任务已提交: {task_id}")
+    # 获取任务状态
+    status = await task_manager.get_task_status(
+        user_id=current_user.id,
+        task_id=task_id
+    )
+    logger.info(f"微调任务状态: {status}") 
+    return StartFinetuneResponse(
+        task_id=task_id,
+        message="微调任务已成功提交",
+        status=status
+    )
+    
+    # except ValueError as e:
+    #     # 处理参数验证错误
+    #     logger.error(f"参数验证错误: {str(e)}")
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail=str(e)
+    #     )
+    # except Exception as e:
+    #     # 处理其他错误
+    #     logger.error(f"启动微调任务失败: {str(e)}")
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail=f"启动微调任务失败: {str(e)}"
+    #     )
 
 @router.post("/stop/{task_id}", response_model=Message)
 async def stop_finetune(
@@ -219,7 +220,7 @@ async def stop_finetune(
             user_id=current_user.id,
             task_id=task_id
         )
-        
+        logger.info(f"停止微调任务: {result}")
         if result:
             return Message(message=f"微调任务 {task_id} 已成功停止")
         else:

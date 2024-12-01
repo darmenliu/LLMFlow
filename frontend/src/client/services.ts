@@ -527,3 +527,59 @@ export class ItemsService {
     })
   }
 }
+
+export type TDataStartFinetune = {
+  model_name: string
+  dataset_name: string
+  finetune_method: string
+  training_phase: string
+  checkpoint_path: string
+  // 量化参数
+  quantization_method: string
+  quantization_bits: number
+  prompt_template: string
+  // 加速器参数
+  accelerator_type: string
+  rope_interpolation_type: string
+  // 优化器参数
+  learning_rate: number
+  weight_decay: number
+  betas: number[]
+  compute_dtype: string
+  num_epochs: number
+  batch_size: number
+  // LoRA参数
+  lora_alpha: number
+  lora_r: number
+  scaling_factor: number
+  learing_rate_ratio: number
+  lora_dropout: number
+  is_create_new_adapter: boolean
+  is_rls_lora: boolean
+  is_do_lora: boolean
+  is_pissa: boolean
+  lora_target_modules: string[]
+}
+
+export class FinetuneService {
+  /**
+   * Start Finetune
+   * Start a new finetune task
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static startFinetune(data: {
+    requestBody: TDataStartFinetune
+  }): CancelablePromise<Message> {
+    const { requestBody } = data
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/finetune/start",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+}

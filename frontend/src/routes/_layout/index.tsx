@@ -1,4 +1,4 @@
-import { Box, Container, Text, VStack, Button, SimpleGrid, FormControl, FormLabel, Input } from "@chakra-ui/react"
+import { Box, Container, Text, VStack, Button, SimpleGrid, FormControl, FormLabel, Input, useToast } from "@chakra-ui/react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import useAuth from "../../hooks/useAuth"
@@ -7,6 +7,7 @@ import TrainingParams, { TrainingConfig } from "../../components/training/Traini
 import DatasetSelector from "../../components/training/DatasetSelector"
 import LoraParams, { LoraConfig } from "../../components/training/LoraParams"
 import { DownloadIcon, ArrowUpIcon } from "@chakra-ui/icons"
+import { FinetuneService, type TDataStartFinetune } from "../../client/services"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
@@ -33,6 +34,7 @@ function Dashboard() {
   const [selectedDataset, setSelectedDataset] = useState<SelectedDataset | null>(null)
   const [loraConfig, setLoraConfig] = useState<LoraConfig | null>(null)
   const [isTraining, setIsTraining] = useState(false)
+  const toast = useToast()
 
   const handleModelSelect = (modelInfo: SelectedModel) => {
     setSelectedModel(modelInfo)
@@ -74,18 +76,113 @@ function Dashboard() {
     console.log("LoRA配置已更新:", config)
   }
 
-  const handleStartTraining = () => {
-    if (!selectedModel || !trainingConfig || !selectedDataset || !loraConfig) {
+  const handleStartTraining = async () => {
+    if (!selectedModel || !selectedDataset || !trainingConfig || !loraConfig) {
+      toast({
+        title: "参数错误",
+        description: "请确保已选择模型、数据集，并完成所有配置",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      })
       return
     }
 
-    setIsTraining(true)
-    console.log("开始训练:", {
-      model: selectedModel,
-      config: trainingConfig,
-      dataset: selectedDataset,
-      lora: loraConfig
-    })
+    try {
+      setIsTraining(true)
+      
+      // 获取模型和数据集名称
+      let modelName = ""
+      let datasetName = ""
+
+      switch (selectedModel.type) {
+        case "online":
+          modelName = selectedModel.modelId ?? ""
+          break
+        case "existing":
+          modelName = selectedModel.localPath ?? ""
+          break
+        case "local":
+          modelName = selectedModel.file?.name ?? ""
+          break
+      }
+
+      switch (selectedDataset.type) {
+        case "online":
+          datasetName = selectedDataset.datasetId ?? ""
+          break
+        case "local":
+          datasetName = selectedDataset.localPath ?? ""
+          break
+        case "upload":
+          datasetName = selectedDataset.file?.name ?? ""
+          break
+      }
+
+      if (!modelName || !datasetName) {
+        throw new Error("模型或数据集名称无效")
+      }
+      
+      // 准备请求数据
+      const requestBody: TDataStartFinetune = {
+        model_name: modelName,
+        dataset_name: datasetName,
+        finetune_method: trainingConfig.finetuneMethod,
+        training_phase: trainingConfig.trainingStage,
+        checkpoint_path: trainingConfig.checkpointPath,
+        
+        // 量化参数
+        quantization_method: trainingConfig.quantizationMethod,
+        quantization_bits: trainingConfig.quantizationLevel === "4bit" ? 4 : 8,
+        prompt_template: trainingConfig.promptTemplate,
+        
+        // 加速器参数
+        accelerator_type: trainingConfig.accelerationMethod,
+        rope_interpolation_type: trainingConfig.ropeMethod,
+        
+        // 优化器参数
+        learning_rate: trainingConfig.learningRate,
+        weight_decay: 0.01,
+        betas: [0.9, 0.999],
+        compute_dtype: trainingConfig.computeType,
+        num_epochs: trainingConfig.epochs,
+        batch_size: trainingConfig.batchSize,
+        
+        // LoRA参数
+        lora_alpha: loraConfig.alpha,
+        lora_r: loraConfig.rank,
+        scaling_factor: 1.0,
+        learing_rate_ratio: loraConfig.learningRateScale,
+        lora_dropout: loraConfig.dropout,
+        is_create_new_adapter: loraConfig.createNewAdapter,
+        is_rls_lora: loraConfig.enableRsLora,
+        is_do_lora: loraConfig.enableDora,
+        is_pissa: loraConfig.enablePiSSA,
+        lora_target_modules: loraConfig.targetModules.split(",").map((s: string) => s.trim()).filter(Boolean)
+      }
+
+      // 调用微调服务
+      const result = await FinetuneService.startFinetune({ requestBody })
+      
+      toast({
+        title: "训练任务已提交",
+        description: result.message,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      })
+      
+    } catch (error) {
+      toast({
+        title: "启动训练失败",
+        description: error instanceof Error ? error.message : "未知错误",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      })
+    } finally {
+      setIsTraining(false)
+    }
   }
 
   const handleStopTraining = () => {
@@ -232,7 +329,7 @@ function Dashboard() {
               size="lg"
               width="full"
               onClick={handleStartTraining}
-              isDisabled={!selectedModel || !trainingConfig || !selectedDataset || !loraConfig || isTraining}
+              isDisabled={!selectedModel || !selectedDataset || isTraining}
               isLoading={isTraining}
               loadingText="训练中..."
             >

@@ -5,6 +5,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.taskmanager.task_manager_singleton import init_task_manager
+from app.db.session import get_session
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -31,3 +33,20 @@ if settings.all_cors_origins:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+@app.on_event("startup")
+async def startup_event():
+    # 初始化任务管理器
+    db = next(get_session())
+    init_task_manager(
+        db_session=db,
+        finetune_image=settings.FINETUNE_IMAGE,
+        namespace=settings.FINETUNE_NAMESPACE,
+        max_concurrent_tasks=settings.MAX_CONCURRENT_TASKS,
+        max_tasks_per_user=settings.MAX_TASKS_PER_USER,
+        kubeconfig_path=settings.KUBECONFIG_PATH
+    )
+
+def init_app():
+    # 其他初始化代码...
+    pass

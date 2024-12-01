@@ -1,6 +1,6 @@
 import secrets
 import warnings
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Optional
 
 from pydantic import (
     AnyUrl,
@@ -36,6 +36,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     FRONTEND_HOST: str = "http://localhost:5173"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+
+    # Task Manager 配置
+    FINETUNE_IMAGE: str = "your-finetune-image:latest"
+    FINETUNE_NAMESPACE: str = "finetune"
+    MAX_CONCURRENT_TASKS: int = 5
+    MAX_TASKS_PER_USER: int = 3
+    KUBECONFIG_PATH: Optional[str] = "/root/.kube/config"  # 默认使用 ~/.kube/config
 
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)

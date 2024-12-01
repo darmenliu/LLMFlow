@@ -26,7 +26,6 @@ class FinetuneParametersDB(SQLModel, table=True):
     
     # 加速器参数
     accelerator_type: str
-    num_processes: int
     rope_interpolation_type: str
     
     # 优化器参数

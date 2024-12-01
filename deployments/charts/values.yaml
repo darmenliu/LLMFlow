@@ -1,43 +1,29 @@
 # 全局配置
 global:
-  environment: development
+  projectName: slmflow
+  environment: local
   domain: localhost.tiangolo.com
 
 # PostgreSQL配置
 postgresql:
-  enabled: true
   auth:
     username: postgres
     password: changethis
     database: app
-  primary:
-    persistence:
-      enabled: true
-      size: 1Gi
+  service:
+    port: 5432
+  persistence:
+    size: 1Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
 # Traefik配置  
 traefik:
-  enabled: true
-  ports:
-    web:
-      port: 80
-    websecure:
-      port: 443
-    metrics:
-      port: 8080
-  additionalArguments:
-    - "--log.level=DEBUG"
-    - "--api.insecure=true"
-    - "--providers.kubernetesingress.ingressclass=traefik"
-    - "--accesslog=true"
-
-# 后端服务配置
-backend:
-  name: backend
-  image:
-    repository: backend
-    tag: latest
-    pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
     limits:
@@ -46,7 +32,31 @@ backend:
     requests:
       cpu: 100m
       memory: 128Mi
+  additionalArguments:
+    - "--log.level=DEBUG"
+    - "--api.insecure=true"
+    - "--providers.kubernetesingress.ingressclass=traefik"
+    - "--accesslog=true"
+
+# 后端服务配置
+backend:
+  replicaCount: 1
+  image:
+    repository: backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  kubeconfig:
+    hostPath: ~/.kube/config
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
   env:
+    FRONTEND_HOST: "http://dashboard.localhost.tiangolo.com"
+    BACKEND_CORS_ORIGINS: "http://localhost,http://localhost:5173,http://localhost:3000,http://localhost:8080,http://dashboard.localhost.tiangolo.com"
     SMTP_HOST: mailcatcher
     SMTP_PORT: "1025"
     SMTP_TLS: "false"
@@ -54,15 +64,18 @@ backend:
   service:
     type: ClusterIP
     port: 8000
+  secrets:
+    secretKey: "changethis"
+    firstSuperuser: "admin@example.com"
+    firstSuperuserPassword: "changethis"
 
 # 前端服务配置    
 frontend:
-  name: frontend
+  replicaCount: 1
   image:
     repository: frontend
     tag: latest
     pullPolicy: IfNotPresent
-  replicaCount: 1
   resources:
     limits:
       cpu: 300m
@@ -71,7 +84,6 @@ frontend:
       cpu: 100m
       memory: 128Mi
   env:
-    VITE_API_URL: http://backend:8000
     NODE_ENV: development
   service:
     type: ClusterIP

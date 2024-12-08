@@ -47,11 +47,11 @@ backend:
     pullPolicy: IfNotPresent
   resources:
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 1000m
+      memory: 1Gi
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 200m
+      memory: 256Mi
   env:
     FRONTEND_HOST: "http://dashboard.localhost.tiangolo.com"
     BACKEND_CORS_ORIGINS: "http://localhost,http://localhost:5173,http://localhost:3000,http://localhost:8080,http://dashboard.localhost.tiangolo.com"
@@ -63,8 +63,9 @@ backend:
     MAX_CONCURRENT_TASKS: "5"
     MAX_TASKS_PER_USER: "3"
   service:
-    type: ClusterIP
+    type: NodePort
     port: 8000
+    nodePort: 30080
   secrets:
     secretKey: "changethis"
     firstSuperuser: "admin@example.com"
@@ -87,8 +88,9 @@ frontend:
   env:
     NODE_ENV: development
   service:
-    type: ClusterIP
+    type: NodePort
     port: 80
+    nodePort: 30081
 
 # Adminer配置
 adminer:

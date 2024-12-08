@@ -45,8 +45,6 @@ backend:
     repository: backend
     tag: latest
     pullPolicy: IfNotPresent
-  kubeconfig:
-    hostPath: ~/.kube/config
   resources:
     limits:
       cpu: 500m
@@ -61,6 +59,9 @@ backend:
     SMTP_PORT: "1025"
     SMTP_TLS: "false"
     EMAILS_FROM_EMAIL: "noreply@example.com"
+    FINETUNE_IMAGE: "your-finetune-image:latest"
+    MAX_CONCURRENT_TASKS: "5"
+    MAX_TASKS_PER_USER: "3"
   service:
     type: ClusterIP
     port: 8000

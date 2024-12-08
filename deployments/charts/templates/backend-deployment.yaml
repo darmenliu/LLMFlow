@@ -5,9 +5,10 @@ metadata:
   labels:
     app.kubernetes.io/name: backend
     app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "0"
+    helm.sh/hook-weight: "0"
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:
@@ -19,16 +20,13 @@ spec:
       labels:
         app.kubernetes.io/name: backend
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
     spec:
-      initContainers:
-        - name: wait-for-postgresql
-          image: busybox
-          command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgresql {{ .Values.postgresql.service.port }}; do echo waiting for postgresql; sleep 2; done;']
       volumes:
         - name: kube-config
           hostPath:
-            path: {{ .Values.backend.kubeconfig.hostPath }}
-            type: File
+            path: /root/.kube
+            type: Directory
       containers:
         - name: backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
@@ -38,10 +36,11 @@ spec:
               name: http
           volumeMounts:
             - name: kube-config
-              mountPath: /root/.kube/config
-              subPath: config
+              mountPath: /root/.kube
               readOnly: true
           env:
+            - name: PROJECT_NAME
+              value: {{ .Values.global.projectName | quote }}
             - name: DOMAIN
               value: {{ .Values.global.domain | quote }}
             - name: FRONTEND_HOST
@@ -88,6 +87,14 @@ spec:
               value: {{ .Values.backend.env.EMAILS_FROM_EMAIL | quote }}
             - name: KUBECONFIG
               value: "/root/.kube/config"
+            - name: FINETUNE_IMAGE
+              value: {{ .Values.backend.env.FINETUNE_IMAGE | quote }}
+            - name: FINETUNE_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: MAX_CONCURRENT_TASKS
+              value: {{ .Values.backend.env.MAX_CONCURRENT_TASKS | quote }}
+            - name: MAX_TASKS_PER_USER
+              value: {{ .Values.backend.env.MAX_TASKS_PER_USER | quote }}
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           livenessProbe:

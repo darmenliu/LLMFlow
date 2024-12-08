@@ -7,8 +7,6 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-  annotations:
-    helm.sh/hook-weight: "0"
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:
@@ -22,6 +20,17 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
     spec:
+      initContainers:
+        - name: wait-for-postgresql
+          image: busybox
+          command: 
+            - sh
+            - -c
+            - |
+              until nc -z {{ .Release.Name }}-postgresql {{ .Values.postgresql.service.port }}; do
+                echo "Waiting for PostgreSQL to be ready..."
+                sleep 2
+              done
       volumes:
         - name: kube-config
           hostPath:
@@ -31,6 +40,8 @@ spec:
         - name: backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          # command: ["uvicorn"]
+          # args: ["app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
           ports:
             - containerPort: {{ .Values.backend.service.port }}
               name: http
@@ -96,20 +107,9 @@ spec:
             - name: MAX_TASKS_PER_USER
               value: {{ .Values.backend.env.MAX_TASKS_PER_USER | quote }}
           resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
-          livenessProbe:
-            httpGet:
-              path: /api/v1/utils/health-check
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 5
-          readinessProbe:
-            httpGet:
-              path: /api/v1/utils/health-check
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 5 
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 256Mi 
